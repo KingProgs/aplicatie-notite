@@ -1,0 +1,19 @@
+<div id="note-{{ note.id }}" class="card mb-2">
+  <div class="card-body">
+    <form hx-post="{{ action }}" hx-target="#note-{{ note.id }}" hx-swap="outerHTML">
+      <div class="mb-2">
+        <input name="title" class="form-control" value="{{ note.title }}" required>
+      </div>
+      <div class="mb-2">
+        <textarea name="content" class="form-control">{{ note.content }}</textarea>
+      </div>
+      <div class="mb-2">
+        <input name="tags" class="form-control" value="{{ note.tags or '' }}" placeholder="Tags (comma separated)">
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-primary">Save</button>
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>

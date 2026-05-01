@@ -1,0 +1,32 @@
+{# Group pinned notes and others for nicer display #}
+{% if pinned and pinned|length > 0 %}
+  <div class="mb-4">
+    <h6 class="fw-bold text-secondary mb-2">📌 Notițe importante</h6>
+    {% for note in pinned %}
+      {% include '_note_item.html' %}
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% if notes and notes|length > 0 %}
+  {% if pinned and pinned|length > 0 %}
+    <hr class="my-3">
+  {% endif %}
+  <h6 class="fw-bold text-secondary mb-2">📄 Alte notițe</h6>
+  {% for note in notes %}
+    {% include '_note_item.html' %}
+  {% endfor %}
+{% else %}
+  {% if not (pinned and pinned|length > 0) %}
+    <div class="empty-state">
+      <div class="empty-state-icon">🔍</div>
+      <div class="empty-state-text">
+        {% if search_query %}
+          Nu am găsit nicio notiță pentru "<strong>{{ search_query }}</strong>"
+        {% else %}
+          Nicio notiță încă. Crează una! 📝
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+{% endif %}

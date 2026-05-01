@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Notițe — HTMX UI</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+</head>
+<body class="p-4">
+  <div class="container">
+    <h1>Aplicație Notițe (HTMX)</h1>
+
+    <div id="login-section" class="card mb-3">
+      <div class="card-body">
+        <h5 class="card-title">Autentificare</h5>
+        <form id="login-form" onsubmit="login(event)">
+          <div class="mb-2">
+            <input name="email" type="email" class="form-control" placeholder="Email" required>
+          </div>
+          <div class="mb-2">
+            <input name="password" type="password" class="form-control" placeholder="Parolă" required>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-primary">Conectează-te</button>
+            <button type="button" class="btn btn-outline-secondary" onclick="showRegister()">Înregistrează-te</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="post-registration" class="d-none">
+      <div class="min-vh-100 d-flex align-items-center justify-content-center">
+        <div class="text-center" style="animation: slideUp 0.6s ease-out;">
+          <div style="margin-bottom: 2rem;">
+            <img id="post-reg-avatar" src="https://avatars.dicebear.com/api/identicon/success.svg?scale=120" alt="success" class="rounded-circle shadow-lg mb-4" width="120" height="120" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 8px; animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);">
+          </div>
+          <h2 class="fw-bold mb-2" style="color: #5b5fc7; font-size: 2rem;">🎉 Felicitări!</h2>
+          <p class="text-muted mb-4" style="font-size: 1.1rem;">Contul tău a fost creat cu succes.</p>
+          <p class="text-muted mb-4">Bine ai venit în Aplicația Notițe!</p>
+          <button class="btn btn-lg fw-bold" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; padding: 0.75rem 2rem; border-radius: 8px; transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onclick="goToApp()">Mergi la aplicație →</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="app-section" class="d-none">
+      <div class="mb-3">
+        <button class="btn btn-secondary" onclick="logout()">Deconectare</button>
+      </div>
+
+      <div class="card mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Adaugă notiță</h5>
+          <form hx-post="/notes/create" hx-target="#notes" hx-swap="afterbegin">
+            <div class="mb-2">
+              <input name="title" class="form-control" placeholder="Titlu" required>
+            </div>
+            <div class="mb-2">
+              <textarea name="content" class="form-control" placeholder="Conținut"></textarea>
+            </div>
+            <div class="mb-2">
+              <input name="tags" class="form-control" placeholder="Tags (comma separated)">
+            </div>
+            <button class="btn btn-success">Adaugă</button>
+          </form>
+        </div>
+      </div>
+
+      <h5>Notițele mele</h5>
+      <div class="mb-3">
+        <input id="notes-search" name="q" class="form-control" placeholder="Caută..." hx-get="/notes/fragment" hx-target="#notes" hx-trigger="keyup changed delay:500ms">
+      </div>
+      <div id="notes" hx-get="/notes/fragment" hx-trigger="load"></div>
+    </div>
+
+  </div>
+
+<script>
+// Attach Authorization header from localStorage to all HTMX requests
+document.body.addEventListener('htmx:configRequest', function(evt) {
+  const token = localStorage.getItem('token');
+  if (token) evt.detail.headers['Authorization'] = 'Bearer ' + token;
+});
+
+async function login(e){
+  e.preventDefault();
+  const form = document.getElementById('login-form');
+  const data = new URLSearchParams();
+  data.append('username', form.email.value);
+  data.append('password', form.password.value);
+  try{
+    const res = await fetch('/autentificare', { method: 'POST', body: data });
+    if (!res.ok) { alert('Autentificare eșuată'); return; }
+    const j = await res.json();
+    localStorage.setItem('token', j.access_token);
+    // show app section and reload notes fragment
+    document.getElementById('login-section').classList.add('d-none');
+    document.getElementById('app-section').classList.remove('d-none');
+    // trigger HTMX to load notes
+    htmx.trigger(document.getElementById('notes'), 'refresh');
+    // fallback: reload page
+    htmx.ajax('GET', '/notes/fragment', {target:'#notes'});
+  }catch(err){
+    alert('Eroare la conectare');
+  }
+}
+
+function logout(){
+  localStorage.removeItem('token');
+  location.reload();
+}
+
+function goToApp(){
+  document.getElementById('post-registration').classList.add('d-none');
+  document.getElementById('app-section').classList.remove('d-none');
+  htmx.trigger(document.getElementById('notes'), 'refresh');
+}
+</script>
+<script>
+function showRegister(){
+  const modalEl = document.getElementById('registerModal');
+  const modal = new bootstrap.Modal(modalEl);
+  // reset form
+  const form = document.getElementById('register-form');
+  if(form){ 
+    form.reset(); 
+    document.getElementById('register-error').classList.add('d-none');
+    const bar = document.getElementById('password-bar');
+    if(bar) bar.style.width = '0%';
+    const strength = document.getElementById('password-strength');
+    if(strength) strength.textContent = '';
+    const avatar = document.getElementById('register-avatar');
+    if(avatar) avatar.src = 'https://avatars.dicebear.com/api/identicon/placeholder.svg?scale=80';
+  }
+  modal.show();
+}
+
+function updateRegisterAvatar(){
+  const emailInput = document.getElementById('register-email');
+  const avatar = document.getElementById('register-avatar');
+  if(!emailInput || !avatar) return;
+  const email = emailInput.value.trim().toLowerCase();
+  if(email) {
+    avatar.style.transform = 'scale(0.95)';
+    avatar.src = `https://avatars.dicebear.com/api/identicon/${encodeURIComponent(email)}?scale=80`;
+    setTimeout(() => { avatar.style.transform = 'scale(1)'; }, 150);
+  }
+}
+
+function updatePasswordStrength(){
+  const pwInput = document.getElementById('register-password');
+  const bar = document.getElementById('password-bar');
+  const label = document.getElementById('password-strength');
+  if(!pwInput || !bar || !label) return;
+  
+  const pw = pwInput.value || '';
+  let score = 0;
+  if(pw.length >= 8) score += 1;
+  if(/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score += 1;
+  if(/[0-9]/.test(pw)) score += 1;
+  if(/[^A-Za-z0-9]/.test(pw)) score += 1;
+  
+  const pct = (score / 4) * 100;
+  bar.style.width = pct + '%';
+  
+  if(!pw) {
+    label.textContent = '';
+  } else if(score <= 1) {
+    label.textContent = '❌ Parolă slabă';
+    label.style.color = '#dc3545';
+  } else if(score === 2) {
+    label.textContent = '⚠️ Parolă medie';
+    label.style.color = '#ffc107';
+  } else if(score === 3) {
+    label.textContent = '✓ Parolă bună';
+    label.style.color = '#28a745';
+  } else {
+    label.textContent = '✓✓ Parolă puternică';
+    label.style.color = '#20c997';
+  }
+}
+
+async function registerUser(e){
+  e.preventDefault();
+  const form = document.getElementById('register-form');
+  const email = form.email.value;
+  const password = form.password.value;
+  const btn = form.querySelector('button[type=submit]');
+  const origText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Se creează...';
+  
+  try{
+    const res = await fetch('/inregistrare', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email, password}) });
+    if(!res.ok){
+      const err = await res.json().catch(()=>null);
+      const msg = err && err.detail ? err.detail : 'Eroare la înregistrare';
+      document.getElementById('register-error').textContent = msg;
+      document.getElementById('register-error').classList.remove('d-none');
+      btn.disabled = false;
+      btn.innerHTML = origText;
+      return;
+    }
+    const j = await res.json();
+    if(j && j.access_token){
+      localStorage.setItem('token', j.access_token);
+      const avatar = document.getElementById('register-avatar');
+      if(avatar) avatar.style.animation = 'pulse 0.6s ease-out';
+      showToast('✨ Bine ai venit! Cont creat cu succes', 'success');
+      setTimeout(() => {
+        const modalEl = document.getElementById('registerModal');
+        const modalInst = bootstrap.Modal.getInstance(modalEl);
+        if(modalInst) modalInst.hide();
+        document.getElementById('login-section').classList.add('d-none');
+        document.getElementById('post-registration').classList.remove('d-none');
+        const postAvatar = document.getElementById('post-reg-avatar');
+        if(postAvatar && email) {
+          postAvatar.src = `https://avatars.dicebear.com/api/identicon/${encodeURIComponent(email)}?scale=120`;
+        }
+      }, 500);
+    } else {
+      const l = await fetch('/autentificare', { method: 'POST', body: new URLSearchParams({username: email, password}) });
+      if(l.ok){
+        const lj = await l.json();
+        localStorage.setItem('token', lj.access_token);
+        showToast('✨ Autentificat automat', 'success');
+        setTimeout(() => {
+          const modalEl = document.getElementById('registerModal');
+          const modalInst = bootstrap.Modal.getInstance(modalEl);
+          if(modalInst) modalInst.hide();
+          document.getElementById('login-section').classList.add('d-none');
+          document.getElementById('post-registration').classList.remove('d-none');
+          const postAvatar = document.getElementById('post-reg-avatar');
+          if(postAvatar && email) {
+            postAvatar.src = `https://avatars.dicebear.com/api/identicon/${encodeURIComponent(email)}?scale=120`;
+          }
+        }, 500);
+      } else {
+        document.getElementById('register-error').textContent = 'Înregistrare reușită, dar login automat eșuat.';
+        document.getElementById('register-error').classList.remove('d-none');
+        btn.disabled = false;
+        btn.innerHTML = origText;
+      }
+    }
+  }catch(err){
+    document.getElementById('register-error').textContent = 'Eroare la înregistrare';
+    document.getElementById('register-error').classList.remove('d-none');
+    btn.disabled = false;
+    btn.innerHTML = origText;
+  }
+}
+</script>
+<!-- Modal and toast container for Jinja UI -->
+<!-- Registration modal -->
+<!-- Registration modal -->
+<!-- Registration modal -->
+<div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content" style="border: none; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);">
+      <form id="register-form" onsubmit="registerUser(event)">
+        <div class="modal-header" style="border: none; padding: 1.5rem 1.5rem 0.5rem;">
+          <h5 class="modal-title fw-bold" style="color: #5b5fc7; font-size: 1.1rem;">✨ Bine ai venit!</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-center" style="padding: 1rem 1.5rem;">
+          <img id="register-avatar" src="https://avatars.dicebear.com/api/identicon/placeholder.svg?scale=80" class="rounded-circle shadow-sm mb-3" width="80" height="80" style="transition: transform 0.3s ease; background: white; padding: 4px;">
+          <div class="mb-3">
+            <input id="register-email" name="email" type="email" class="form-control" placeholder="Email" required oninput="updateRegisterAvatar()" style="border-radius: 8px; border: 1px solid #ddd;">
+          </div>
+          <div class="mb-3">
+            <input id="register-password" name="password" type="password" class="form-control" placeholder="Parolă (min 8)" required minlength="8" oninput="updatePasswordStrength()" style="border-radius: 8px; border: 1px solid #ddd;">
+            <div class="progress mt-2" style="height: 4px; border-radius: 8px; background: #e0e0e0;"><div id="password-bar" class="progress-bar" role="progressbar" style="width: 0%; background: #5b5fc7;"></div></div>
+            <small id="password-strength" class="d-block mt-2" style="color: #999; font-weight: 500;"></small>
+          </div>
+          <div id="register-error" class="text-danger d-none mb-2 small"></div>
+        </div>
+        <div class="modal-footer" style="border: none; padding: 1rem 1.5rem 1.5rem; gap: 0.75rem;">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 8px;">Anulează</button>
+          <button type="submit" class="btn btn-primary" style="border-radius: 8px;">Creează cont</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="noteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div id="modal-body"></div>
+    </div>
+  </div>
+</div>
+<div id="toast-container" class="position-fixed top-0 end-0 p-3" style="z-index:1080"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+let lastHtmxAction = null;
+document.body.addEventListener('htmx:beforeRequest', function(evt) { try{ lastHtmxAction = (evt.detail.requestConfig && evt.detail.requestConfig.path) || null; }catch(e){ lastHtmxAction = null } });
+document.body.addEventListener('htmx:afterSwap', function(evt){ try{
+  const target = evt.detail.target;
+  if(target && target.id === 'modal-body'){ const modal = new bootstrap.Modal(document.getElementById('noteModal')); modal.show(); }
+  if(target && target.id && target.id.startsWith('note-')){ const modalEl = document.getElementById('noteModal'); const modalInst = bootstrap.Modal.getInstance(modalEl); if(modalInst) modalInst.hide(); if(lastHtmxAction){ const p = String(lastHtmxAction); if(p.includes('/notes/create')) showToast('Notă creată','success'); else if(p.includes('/update')) showToast('Notă actualizată','success'); else if(p.includes('/delete')) showToast('Notă ștearsă','warning'); else if(p.includes('/toggle_pin')) showToast('Pin schimbat','info'); } }
+  if(target && target.id === 'notes'){ if(lastHtmxAction && String(lastHtmxAction).includes('/notes/create')) showToast('Notă creată','success'); }
+}catch(e){} lastHtmxAction = null; });
+function showToast(message, type='success'){ const colors = { success: 'bg-success text-white', warning: 'bg-warning text-dark', info: 'bg-info text-white', danger: 'bg-danger text-white' }; const cls = colors[type] || colors.success; const el = document.createElement('div'); el.className = 'toast align-items-center '+cls+' border-0 mb-2'; el.role='alert'; el.ariaLive='assertive'; el.ariaAtomic='true'; el.innerHTML = `<div class="d-flex"><div class="toast-body">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`; document.getElementById('toast-container').appendChild(el); const bs = new bootstrap.Toast(el,{delay:3000}); bs.show(); el.addEventListener('hidden.bs.toast', ()=>el.remove()); }
+let draggedElement = null;
+document.addEventListener('dragstart', function(e) { if(e.target.classList.contains('note-item') && !e.target.classList.contains('note-pinned')) { draggedElement = e.target; e.target.style.opacity = '0.5'; e.dataTransfer.effectAllowed = 'move'; } });
+document.addEventListener('dragend', function(e) { if(e.target.classList.contains('note-item')) { e.target.style.opacity = '1'; draggedElement = null; } });
+document.addEventListener('dragover', function(e) { e.preventDefault(); const container = document.getElementById('notes'); if(container && draggedElement) { const afterElement = getDragAfterElement(container, e.clientY); if(afterElement == null) { container.appendChild(draggedElement); } else { container.insertBefore(draggedElement, afterElement); } } });
+function getDragAfterElement(container, y) { const draggableElements = [...container.querySelectorAll('.note-item:not(.dragging)')]; return draggableElements.reduce((closest, child) => { const box = child.getBoundingClientRect(); const offset = y - box.top - box.height / 2; if(offset < 0 && offset > closest.offset) { return { offset: offset, element: child }; } else { return closest; } }, { offset: Number.NEGATIVE_INFINITY }).element; }
+</script>
+</body>
+</html>

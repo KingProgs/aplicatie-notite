@@ -1,0 +1,34 @@
+<div id="note-{{ note.id }}" class="card note-item {% if note.pinned %}note-pinned{% endif %}" draggable="{% if not note.pinned %}true{% else %}false{% endif %}" style="cursor: {% if not note.pinned %}grab{% else %}default{% endif %};">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-start mb-2">
+      <div class="flex-grow-1">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <h6 class="card-title mb-0">{{ note.title }}</h6>
+          {% if note.pinned %}
+            <span class="badge bg-warning text-dark">Pinned</span>
+          {% endif %}
+        </div>
+        <p class="card-text">{{ note.content or '(no content)' }}</p>
+        {% if note.tags %}
+          <div class="mb-2">
+            {% for tag in note.tags.split(',') %}
+              <span class="badge bg-secondary">{{ tag.strip() }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+        <small class="text-muted">
+          {% if note.created_at %}
+            {{ note.created_at }}
+          {% endif %}
+        </small>
+      </div>
+      <div class="d-flex gap-1 ms-2 flex-shrink-0">
+        <button class="btn btn-sm btn-outline-primary" hx-get="/notes/{{ note.id }}/edit" hx-target="#modal-body" hx-swap="innerHTML" title="Edit"><i class="bi bi-pencil"></i></button>
+        <button class="btn btn-sm {% if note.pinned %}btn-danger{% else %}btn-outline-secondary{% endif %}" hx-post="/notes/{{ note.id }}/toggle_pin" hx-target="#note-{{ note.id }}" hx-swap="outerHTML" title="Toggle pin">
+          <i class="bi {% if note.pinned %}bi-pin-fill{% else %}bi-pin{% endif %}"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-danger" hx-post="/notes/{{ note.id }}/delete" hx-target="#note-{{ note.id }}" hx-swap="outerHTML" hx-confirm="Delete this note?" title="Delete"><i class="bi bi-trash"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
