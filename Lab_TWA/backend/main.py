@@ -15,7 +15,6 @@ import jwt
 from passlib.context import CryptContext
 from dotenv import load_dotenv
 
-# Load environment
 load_dotenv()
 
 # Paths
@@ -169,7 +168,6 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: sqlite3.Connection
 @app.post("/inregistrare", status_code=201)
 async def register(request: Request):
     """Register a new user. Accepts JSON or form data. Returns a JWT token on success."""
-    # Parse input (support both JSON and form submissions)
     try:
         ct = request.headers.get('content-type', '')
         if 'application/json' in ct:
@@ -184,7 +182,6 @@ async def register(request: Request):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    # Use a dedicated connection for registration to avoid transaction conflicts
     conn = sqlite3.connect(DATABASE_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     try:
@@ -210,7 +207,6 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: sqlite3.Connecti
     return {"access_token": token, "token_type": "bearer"}
 
 
-# Notes API
 @app.get("/api/notes")
 def list_notes(db: sqlite3.Connection = Depends(get_db), current_user = Depends(get_current_user)):
     rows = db.execute("SELECT * FROM notes WHERE owner_id = ? ORDER BY created_at DESC", (current_user["id"],)).fetchall()
@@ -287,10 +283,8 @@ def ui_index(request: Request):
     return HTMLResponse(content)
 
 
-# HTMX endpoints (return HTML fragments)
 @app.get("/notes/fragment", response_class=HTMLResponse)
 def notes_fragment(request: Request, q: Optional[str] = None, db: sqlite3.Connection = Depends(get_db), current_user = Depends(get_current_user)):
-    # Support optional search query 'q' and order pinned notes first
     if q:
         pattern = f"%{q}%"
         rows = db.execute(
@@ -300,7 +294,6 @@ def notes_fragment(request: Request, q: Optional[str] = None, db: sqlite3.Connec
     else:
         rows = db.execute("SELECT * FROM notes WHERE owner_id = ? ORDER BY pinned DESC, created_at DESC", (current_user["id"],)).fetchall()
     notes = [dict(r) for r in rows]
-    # group pinned and others for template
     pinned = [n for n in notes if n.get('pinned')]
     others = [n for n in notes if not n.get('pinned')]
     content = template_env.get_template("notes_list.html").render(pinned=pinned, notes=others, search_query=q)
@@ -378,7 +371,6 @@ def notes_delete(note_id: int, request: Request, current_user = Depends(get_curr
         conn.close()
 
 
-# Mount static files last so API routes take precedence
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 if os.path.isdir(STATIC_DIR):
     app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")

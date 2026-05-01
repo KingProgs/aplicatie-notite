@@ -1,6 +1,6 @@
 # Lab_TWA — Aplicație de notițe (FastAPI + SQLite + HTMX)
 
-Proiect minimal pentru laborator: backend FastAPI, SQLite (serverless), autentificare JWT.
+Proiect pentru laborator: backend FastAPI, SQLite (serverless), autentificare JWT.
 
 Rulare locală:
 
@@ -29,10 +29,6 @@ pytest -q
 Deploy (Render)
 ----------------
 
-Am inclus un fișier `render.yaml` în rădăcină care configurează un Web Service pentru Render.com. Pași rapizi:
+Am inclus un fișier `render.yaml` în rădăcină care configurează un Web Service pentru Render.com. 
+Site:https://aplicatie-notite.onrender.com
 
-1. Commit & push repository pe GitHub.
-2. Conectați repository-ul în Render și creați un nou Web Service folosind `render.yaml` (sau configurați manual start/build commands).
-3. Asigurați-vă că `DATABASE_PATH` este setat la `/tmp/notes.db` (sau folosiți o bază externă pentru persistență).
-
-Notă: fișierul SQLite local este efemer în multe medii cloud; pentru păstrarea datelor folosiți o bază de date gestionată.

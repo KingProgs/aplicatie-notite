@@ -52,7 +52,6 @@ body::before {
   font-size: 1.1rem;
 }
 
-/* Search styling */
 #notes-search {
   border-radius: 8px;
   border: 1px solid #ddd;
@@ -70,7 +69,6 @@ body::before {
   transform: none;
 }
 
-/* Note card styling */
 .card {
   border: none;
   border-radius: 8px;
@@ -104,7 +102,6 @@ body::before {
   margin-bottom: 1rem;
 }
 
-/* Note item card */
 #notes .card {
   margin-bottom: 1rem;
   background: white;
@@ -114,7 +111,6 @@ body::before {
   padding: 1.5rem;
 }
 
-/* Buttons styling */
 .btn {
   border-radius: 8px;
   font-weight: 600;
@@ -163,7 +159,6 @@ body::before {
   font-size: 0.875rem;
 }
 
-/* Badges and tags */
 .badge {
   border-radius: 6px;
   font-weight: 500;
@@ -188,7 +183,6 @@ body::before {
   color: white;
 }
 
-/* Empty state message */
 .empty-state {
   text-align: center;
   padding: 3rem 1.5rem;
@@ -206,7 +200,6 @@ body::before {
   color: #888;
 }
 
-/* Notes container */
 .notes-container {
   display: flex;
   flex-direction: column;
@@ -279,7 +272,6 @@ body::before {
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
-/* Notes dragging */
 .note-item {
   transition: all 0.2s ease;
 }

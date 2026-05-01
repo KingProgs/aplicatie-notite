@@ -35,7 +35,7 @@
       <div class="min-vh-100 d-flex align-items-center justify-content-center">
         <div class="text-center" style="animation: slideUp 0.6s ease-out;">
           <div style="margin-bottom: 2rem;">
-            <img id="post-reg-avatar" src="https://avatars.dicebear.com/api/identicon/success.svg?scale=120" alt="success" class="rounded-circle shadow-lg mb-4" width="120" height="120" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 8px; animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);">
+            <img id="post-reg-avatar" src="https://api.dicebear.com/9.x/identicon/svg?seed=success&size=120" alt="success" class="rounded-circle shadow-lg mb-4" width="120" height="120" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 8px; animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);">
           </div>
           <h2 class="fw-bold mb-2" style="color: #5b5fc7; font-size: 2rem;">🎉 Felicitări!</h2>
           <p class="text-muted mb-4" style="font-size: 1.1rem;">Contul tău a fost creat cu succes.</p>
@@ -78,7 +78,6 @@
   </div>
 
 <script>
-// Attach Authorization header from localStorage to all HTMX requests
 document.body.addEventListener('htmx:configRequest', function(evt) {
   const token = localStorage.getItem('token');
   if (token) evt.detail.headers['Authorization'] = 'Bearer ' + token;
@@ -95,12 +94,9 @@ async function login(e){
     if (!res.ok) { alert('Autentificare eșuată'); return; }
     const j = await res.json();
     localStorage.setItem('token', j.access_token);
-    // show app section and reload notes fragment
     document.getElementById('login-section').classList.add('d-none');
     document.getElementById('app-section').classList.remove('d-none');
-    // trigger HTMX to load notes
     htmx.trigger(document.getElementById('notes'), 'refresh');
-    // fallback: reload page
     htmx.ajax('GET', '/notes/fragment', {target:'#notes'});
   }catch(err){
     alert('Eroare la conectare');
@@ -122,7 +118,6 @@ function goToApp(){
 function showRegister(){
   const modalEl = document.getElementById('registerModal');
   const modal = new bootstrap.Modal(modalEl);
-  // reset form
   const form = document.getElementById('register-form');
   if(form){ 
     form.reset(); 
@@ -132,7 +127,7 @@ function showRegister(){
     const strength = document.getElementById('password-strength');
     if(strength) strength.textContent = '';
     const avatar = document.getElementById('register-avatar');
-    if(avatar) avatar.src = 'https://avatars.dicebear.com/api/identicon/placeholder.svg?scale=80';
+    if(avatar) avatar.src = 'https://api.dicebear.com/9.x/identicon/svg?seed=placeholder&size=80';
   }
   modal.show();
 }
@@ -144,7 +139,7 @@ function updateRegisterAvatar(){
   const email = emailInput.value.trim().toLowerCase();
   if(email) {
     avatar.style.transform = 'scale(0.95)';
-    avatar.src = `https://avatars.dicebear.com/api/identicon/${encodeURIComponent(email)}?scale=80`;
+    avatar.src = `https://api.dicebear.com/9.x/identicon/svg?seed=${encodeURIComponent(email)}&size=80`;
     setTimeout(() => { avatar.style.transform = 'scale(1)'; }, 150);
   }
 }
@@ -217,7 +212,7 @@ async function registerUser(e){
         document.getElementById('post-registration').classList.remove('d-none');
         const postAvatar = document.getElementById('post-reg-avatar');
         if(postAvatar && email) {
-          postAvatar.src = `https://avatars.dicebear.com/api/identicon/${encodeURIComponent(email)}?scale=120`;
+          postAvatar.src = `https://api.dicebear.com/9.x/identicon/svg?seed=${encodeURIComponent(email)}&size=120`;
         }
       }, 500);
     } else {
@@ -234,7 +229,7 @@ async function registerUser(e){
           document.getElementById('post-registration').classList.remove('d-none');
           const postAvatar = document.getElementById('post-reg-avatar');
           if(postAvatar && email) {
-            postAvatar.src = `https://avatars.dicebear.com/api/identicon/${encodeURIComponent(email)}?scale=120`;
+            postAvatar.src = `https://api.dicebear.com/9.x/identicon/svg?seed=${encodeURIComponent(email)}&size=120`;
           }
         }, 500);
       } else {
@@ -265,7 +260,7 @@ async function registerUser(e){
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body text-center" style="padding: 1rem 1.5rem;">
-          <img id="register-avatar" src="https://avatars.dicebear.com/api/identicon/placeholder.svg?scale=80" class="rounded-circle shadow-sm mb-3" width="80" height="80" style="transition: transform 0.3s ease; background: white; padding: 4px;">
+          <img id="register-avatar" src="https://api.dicebear.com/9.x/identicon/svg?seed=placeholder&size=80" class="rounded-circle shadow-sm mb-3" width="80" height="80" style="transition: transform 0.3s ease; background: white; padding: 4px;">
           <div class="mb-3">
             <input id="register-email" name="email" type="email" class="form-control" placeholder="Email" required oninput="updateRegisterAvatar()" style="border-radius: 8px; border: 1px solid #ddd;">
           </div>
