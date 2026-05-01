@@ -30,5 +30,5 @@ Deploy (Render)
 ----------------
 
 Am inclus un fișier `render.yaml` în rădăcină care configurează un Web Service pentru Render.com. 
-Site:https://aplicatie-notite.onrender.com
+- Site:https://aplicatie-notite.onrender.com
 
