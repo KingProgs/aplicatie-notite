@@ -1,4 +1,4 @@
-# Lab_TWA — Aplicație de notițe (FastAPI + SQLite + HTMX)
+# Lab_TWA - Aplicație de notițe (FastAPI + SQLite + HTMX)
 
 Proiect pentru laborator: backend FastAPI, SQLite (serverless), autentificare JWT.
 
