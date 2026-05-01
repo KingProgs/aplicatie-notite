@@ -12,6 +12,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
 import jwt
+import jinja2
 from passlib.context import CryptContext
 from dotenv import load_dotenv
 
